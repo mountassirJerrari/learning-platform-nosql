@@ -10,47 +10,67 @@ const config = require('./env');
 let mongoClient, redisClient, db;
 
 async function connectMongo() {
-  // TODO: Implémenter la connexion MongoDB       
-  // Gérer les erreurs et les retries
   try {
-    mongoClient = new MongoClient(config.MONGODB_URI);
+    mongoClient = new MongoClient(config.mongodb.uri);
     await mongoClient.connect();
-    db = mongoClient.db(config.MONGODB_DB_NAME);
+    db = mongoClient.db(config.mongodb.dbName);
     console.log('MongoDB connected successfully');
     return db;
-} catch (error) {
+  } catch (error) {
     console.error('MongoDB connection error:', error);
     throw error;
-}
+  }
 }
 
 async function connectRedis() {
-  // TODO: Implémenter la connexion Redis
-  // Gérer les erreurs et les retries
-
   try {
     redisClient = redis.createClient({
-        url: config.REDIS_URI
+      url: config.redis.uri
     });
     
     redisClient.on('error', (error) => {
-        console.error('Redis connection error:', error);
+      console.error('Redis connection error:', error);
     });
 
     await redisClient.connect();
     console.log('Redis connected successfully');
     return redisClient;
-} catch (error) {
+  } catch (error) {
     console.error('Redis connection error:', error);
     throw error;
+  }
 }
+
+async function closeMongo() {
+  try {
+    if (mongoClient) {
+      await mongoClient.close();
+      console.log('MongoDB connection closed');
+    }
+  } catch (error) {
+    console.error('Error closing MongoDB connection:', error);
+    throw error;
+  }
+}
+
+async function closeRedis() {
+  try {
+    if (redisClient) {
+      await redisClient.quit();
+      console.log('Redis connection closed');
+    }
+  } catch (error) {
+    console.error('Error closing Redis connection:', error);
+    throw error;
+  }
 }
 
 // Export des fonctions et clients
 module.exports = {
-  // TODO: Exporter les clients et fonctions utiles
   connectMongo,
-    connectRedis,
-    db,
-    redisClient
+  connectRedis,
+  closeMongo,
+  closeRedis,
+  db: () => db,
+  redisClient: () => redisClient
 };
